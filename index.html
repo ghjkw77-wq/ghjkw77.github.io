@@ -269,39 +269,6 @@
       animation: line-float 30s linear infinite;
     }
 
-    /* 烟花容器 */
-    #fireworks-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      pointer-events: none;
-      z-index: 10;
-      overflow: hidden;
-      will-change: contents;
-    }
-
-    /* 烟花效果 */
-    .firework {
-      position: fixed;
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .firework-particle {
-      position: absolute;
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      opacity: 1;
-      pointer-events: none;
-      box-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
-    }
-
     /* 动画定义 */
     @keyframes grid-float {
       0%, 100% {
@@ -318,30 +285,6 @@
       }
       100% {
         transform: translateX(200%);
-      }
-    }
-
-    @keyframes firework-explode {
-      0% {
-        transform: scale(0);
-        opacity: 1;
-      }
-      20% {
-        transform: scale(var(--particle-distance));
-        opacity: 1;
-      }
-      100% {
-        transform: scale(var(--particle-distance));
-        opacity: 0;
-      }
-    }
-
-    @keyframes firework-fade {
-      0% {
-        opacity: 1;
-      }
-      100% {
-        opacity: 0;
       }
     }
 
@@ -459,7 +402,6 @@
   <!-- 霓虹背景元素 -->
   <div class="neon-grid"></div>
   <div class="neon-lines-container"></div>
-  <div id="fireworks-container"></div>
   
   <!-- 主要内容 -->
   <div id="name-container"></div>
@@ -876,88 +818,11 @@
       }, 10000);
     }
 
-    function createFirework(x, y) {
-      const container = document.getElementById('fireworks-container');
-      if (!container) return;
-      
-      const particleCount = 60;
-      const colors = [
-        'hsl(0, 100%, 50%)',
-        'hsl(45, 100%, 50%)',
-        'hsl(60, 100%, 50%)',
-        'hsl(120, 100%, 50%)',
-        'hsl(240, 100%, 50%)',
-        'hsl(300, 100%, 50%)'
-      ];
-      const fireworkColor = colors[Math.floor(Math.random() * colors.length)];
-      
-      for (let i = 0; i < particleCount; i++) {
-        const particle = document.createElement('div');
-        particle.classList.add('firework-particle');
-        
-        const angle = (i / particleCount) * Math.PI * 2 + (Math.random() * 0.1 - 0.05);
-        const distance = Math.random() * 200 + 150;
-        const duration = Math.random() * 1.2 + 1.0;
-        
-        particle.style.left = `${x}px`;
-        particle.style.top = `${y}px`;
-        particle.style.backgroundColor = fireworkColor;
-        particle.style.width = '4px';
-        particle.style.height = '4px';
-        particle.style.borderRadius = '50%';
-        particle.style.opacity = '1';
-        particle.style.boxShadow = `0 0 10px ${fireworkColor}, 0 0 20px ${fireworkColor}, 0 0 30px ${fireworkColor}`;
-        particle.style.setProperty('--particle-distance', distance);
-        particle.style.transformOrigin = `${x}px ${y}px`;
-        particle.style.transform = `rotate(${angle}rad) scale(0)`;
-        particle.style.position = 'absolute';
-        
-        particle.style.animation = `firework-explode ${duration}s ease-out forwards`;
-        
-        container.appendChild(particle);
-        
-        setTimeout(() => {
-          if (container && container.contains(particle)) {
-            container.removeChild(particle);
-          }
-        }, duration * 1000);
-      }
-    }
-
     function enhanceNameElement(element) {
       element.style.background = 'none';
       element.style.border = 'none';
       element.style.outline = 'none';
       element.style.boxShadow = 'none';
-      
-      const duration = parseFloat(element.style.animationDuration);
-      const delay = parseFloat(element.style.animationDelay);
-      
-      let checkPosition = () => {
-        if (!document.contains(element)) return;
-        
-        const rect = element.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        
-        const screenCenterX = window.innerWidth / 2;
-        const screenCenterY = window.innerHeight / 2;
-        const distanceToCenter = Math.sqrt(
-          Math.pow(centerX - screenCenterX, 2) + 
-          Math.pow(centerY - screenCenterY, 2)
-        );
-        
-        if (distanceToCenter < window.innerWidth / 4) {
-          createFirework(centerX, centerY);
-          return;
-        }
-        
-        requestAnimationFrame(checkPosition);
-      };
-      
-      setTimeout(() => {
-        checkPosition();
-      }, delay * 1000);
     }
 
     function createClickParticles(x, y) {
@@ -1024,7 +889,6 @@
       const container = document.getElementById('name-container');
       
       container.addEventListener('click', function(e) {
-        createFirework(e.clientX, e.clientY);
         createClickParticles(e.clientX, e.clientY);
         
         const namesToAdd = Math.floor(Math.random() * 3) + 2;
@@ -1039,7 +903,6 @@
       
       container.addEventListener('touchstart', function(e) {
         const touch = e.touches[0];
-        createFirework(touch.clientX, touch.clientY);
         createClickParticles(touch.clientX, touch.clientY);
         
         const namesToAdd = Math.floor(Math.random() * 3) + 2;
@@ -1051,24 +914,6 @@
           enhanceNameElement(element);
         }
       });
-    }
-
-    function startRandomFireworks() {
-      setInterval(() => {
-        const centerBias = 0.6;
-        const edgeBias = 0.4;
-        
-        let x, y;
-        if (Math.random() < centerBias) {
-          x = window.innerWidth * 0.3 + Math.random() * window.innerWidth * 0.4;
-          y = window.innerHeight * 0.3 + Math.random() * window.innerHeight * 0.4;
-        } else {
-          x = Math.random() * window.innerWidth;
-          y = Math.random() * window.innerHeight;
-        }
-        
-        createFirework(x, y);
-      }, 1000);
     }
 
     function createBottomBeamEffect() {
@@ -1417,11 +1262,6 @@
       setTimeout(() => {
         createBottomBeamEffect();
       }, 1000);
-      
-      // 延迟启动随机烟花
-      setTimeout(() => {
-        startRandomFireworks();
-      }, 2000);
       
       // 批量处理元素增强，避免一次性处理过多DOM
       setTimeout(() => {
